@@ -1,0 +1,215 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useEffect } from 'react';
+import { Navbar } from './components/Navbar';
+import { Hero } from './components/Hero';
+import { ProductCard } from './components/ProductCard';
+import { Cart } from './components/Cart';
+import { AISpecialist } from './components/AISpecialist';
+import { products } from './data/products';
+import { Product, CartItem } from './types';
+import { motion } from 'motion/react';
+import { Instagram, Facebook, Twitter, Mail, MapPin, Phone } from 'lucide-react';
+
+export default function App() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('Todos');
+
+  const addToCart = (product: Product) => {
+    setCartItems(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+    setIsCartOpen(true);
+  };
+
+  const updateQuantity = (id: string, delta: number) => {
+    setCartItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    }));
+  };
+
+  const removeFromCart = (id: string) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const categories = ['Todos', 'Anéis', 'Colares', 'Brincos', 'Pulseiras'];
+  const filteredProducts = activeCategory === 'Todos' 
+    ? products 
+    : products.filter(p => p.category === activeCategory);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white">
+      <Navbar 
+        cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)} 
+        onOpenCart={() => setIsCartOpen(true)} 
+      />
+      
+      <main className="flex-grow">
+        <Hero />
+
+        {/* Categories Filter */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col items-center mb-16">
+              <h2 className="serif text-[32px] text-black mb-4 uppercase tracking-tight">Nossas Peças</h2>
+              <div className="w-12 h-[1px] bg-primary mb-10" />
+              <div className="flex flex-wrap justify-center gap-6 md:gap-12">
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-all pb-3 border-b-2 ${
+                      activeCategory === cat 
+                        ? 'text-primary border-primary' 
+                        : 'text-stone-300 border-transparent hover:text-black'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+              {filteredProducts.map(product => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  onAddToCart={addToCart} 
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Section */}
+        <section className="py-24 bg-stone-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+              <div className="relative">
+                <div className="aspect-[4/5] rounded-none overflow-hidden grayscale hover:grayscale-0 transition-all duration-1000">
+                  <img 
+                    src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1000&auto=format&fit=crop" 
+                    alt="Craftsmanship" 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <div className="absolute -bottom-10 -right-10 bg-white p-10 rounded-none shadow-sm max-w-xs hidden md:block border border-stone-100">
+                  <p className="serif text-[20px] italic text-black mb-4 leading-tight">"A joia é a assinatura da alma."</p>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400">— Lumina Atelier</p>
+                </div>
+              </div>
+              <div className="space-y-10">
+                <span className="text-primary text-[11px] font-bold uppercase tracking-[0.4em]">Artesanato Exclusivo</span>
+                <h2 className="serif text-[32px] text-black leading-tight uppercase tracking-tight">Criando Heranças para o <span className="italic">Futuro</span></h2>
+                <p className="text-stone-500 leading-relaxed text-[11px] font-normal uppercase tracking-widest">
+                  Cada peça Lumina é fruto de centenas de horas de trabalho manual. Nossos mestres joalheiros selecionam apenas as gemas mais puras e os metais mais nobres para garantir que sua história seja contada com brilho eterno.
+                </p>
+                <div className="grid grid-cols-2 gap-12 pt-6">
+                  <div>
+                    <h4 className="serif text-[28px] text-black uppercase tracking-tighter">100%</h4>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mt-2">Ouro Certificado</p>
+                  </div>
+                  <div>
+                    <h4 className="serif text-[28px] text-black uppercase tracking-tighter">Handmade</h4>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mt-2">Produção Local</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-white text-black pt-24 pb-12 border-t border-stone-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+            <div className="space-y-8">
+              <svg xmlns="http://www.w3.org/2000/svg" width="150" height="30" viewBox="0 0 180 36" fill="none">
+                <path d="M84.3045 2.87402C84.9321 2.30985 85.871 1.92077 87.1062 1.70191V0.777832H76.4314V1.70191C76.6322 1.73595 76.7778 1.76027 76.8732 1.77C78.0431 1.95967 78.8917 2.27094 79.3888 2.72812C79.8859 3.1707 80.1269 3.64246 80.1269 4.12395C80.1269 4.90212 79.7252 6.25905 78.9268 8.21906L70.6872 28.145L61.8149 7.96616C61.0266 6.16665 60.6349 4.85349 60.6349 4.00237C60.6349 3.38956 60.8709 2.89348 61.3479 2.50439C61.8249 2.12017 62.8794 1.84295 64.4811 1.69704V0.777832H51.0798H50.2111H36.9001H36.1771H26.2202V1.70191C26.4261 1.73595 26.5667 1.76027 26.647 1.77C27.832 1.95967 28.6756 2.27094 29.1676 2.72812C29.6647 3.1707 29.9208 3.64246 29.9208 4.12395C29.9208 4.90212 29.5191 6.25905 28.7107 8.21906L20.4761 28.145L11.6088 7.96616C10.8205 6.16665 10.4138 4.85349 10.4138 4.00237C10.4138 3.38956 10.6548 2.89348 11.1418 2.50439C11.6189 2.12017 12.6632 1.84295 14.27 1.69704V0.777832H0V1.70191C1.04941 1.77972 1.89798 1.97427 2.51558 2.27094C3.13819 2.57248 3.67043 2.98588 4.10225 3.52087C4.38343 3.87105 4.84537 4.80485 5.51318 6.35146L18.548 35.9997H19.5723L31.6832 6.71623C32.3811 4.97994 33.1895 3.71055 34.0933 2.87402C34.736 2.30985 35.665 1.92077 36.9052 1.70191H37.4274C38.2558 1.70191 39.0391 1.89645 39.7923 2.30012C40.3195 2.5968 40.671 2.97129 40.8467 3.39442C41.0677 3.94887 41.1731 5.10153 41.1731 6.83782V29.1567C41.1731 31.2237 40.9723 32.5271 40.5555 33.0718C39.8978 33.8937 38.8584 34.3072 37.4223 34.3072H36.1771V35.2264H51.0798V34.3072H49.8245C49.0061 34.3072 48.2278 34.1077 47.4947 33.6943C46.9474 33.3977 46.5859 33.028 46.4252 32.6049C46.1992 32.0553 46.0888 30.9027 46.0888 29.1567V6.83782C46.0888 4.78053 46.2946 3.4771 46.7265 2.94698C47.3742 2.11044 48.4035 1.70191 49.8245 1.70191H50.2111C51.2756 1.77972 52.1141 1.97427 52.7367 2.27094C53.3694 2.57248 53.8815 2.98588 54.3234 3.52087C54.5895 3.87105 55.0665 4.80485 55.7243 6.35146L68.7742 35.9997H69.7934L81.8893 6.71623C82.5923 4.97994 83.4007 3.71055 84.3045 2.87402Z" fill="#000000"/>
+                <path d="M177.431 33.1451C176.627 32.4593 175.744 30.9614 174.76 28.6414L162.709 0H161.74L149.343 28.2961C148.278 30.8106 147.314 32.4837 146.441 33.3056C146.139 33.5925 145.587 33.8309 144.799 34.0497C143.614 33.792 142.614 33.4029 141.776 32.8776C140.596 32.1189 139.185 30.6063 137.538 28.3205L130.313 18.4329C133.24 17.7811 135.419 16.6917 136.81 15.1305C138.206 13.5693 138.914 11.7455 138.914 9.62983C138.914 7.65523 138.296 5.94812 137.071 4.5231C135.851 3.08349 134.36 2.10592 132.602 1.57093C130.86 1.04566 128.124 0.778168 124.433 0.778168H111.75V1.70224H113.06C114.371 1.70224 115.355 2.07674 116.023 2.81113C116.51 3.3364 116.746 4.67874 116.746 6.83815V29.157C116.746 31.1219 116.56 32.3767 116.213 32.8873C115.576 33.8357 114.526 34.3075 113.06 34.3075H112.985C111.559 34.2248 110.444 33.8357 109.656 33.15C108.852 32.4642 107.974 30.9662 106.995 28.6463L94.9289 0H93.9699L81.5728 28.2961C80.5133 30.8106 79.5442 32.4837 78.6655 33.3056C78.2438 33.719 77.2948 34.0497 75.8387 34.3026V35.2316H86.8399V34.3026C85.1629 34.181 84.0683 33.9233 83.5611 33.5245C83.059 33.1305 82.7979 32.6685 82.7979 32.1383C82.7979 31.4769 83.0942 30.475 83.6816 29.1327L85.9713 23.8849V23.88L86.0416 23.7487L86.87 21.8373L86.9454 21.6817L92.9807 7.93245L98.8102 21.8373L99.7843 24.1621L101.657 28.6706C102.35 30.2805 102.692 31.4574 102.692 32.1967C102.692 32.7609 102.451 33.2229 101.958 33.6169C101.471 34.0108 100.527 34.2443 99.1416 34.3075V35.2364H111.74H112.975H126.637V34.3075H125.287C123.991 34.3075 123.022 33.933 122.369 33.1889C121.892 32.6782 121.646 31.3359 121.646 29.157V19.4688V19.0894V17.4747V17.2851V3.23912C123.323 2.86463 124.649 2.68468 125.638 2.68468C127.837 2.68468 129.625 3.35099 130.97 4.70792C132.311 6.05026 132.989 7.79141 132.989 9.9411C132.989 12.1346 132.145 13.9438 130.493 15.364C129.022 16.6139 126.939 17.3191 124.227 17.4601L125.266 19.1721L137.056 35.2316H143.614H146.4H154.61V34.3026C152.933 34.181 151.833 33.9233 151.331 33.5245C150.829 33.1305 150.568 32.6685 150.568 32.1383C150.568 31.4769 150.864 30.475 151.447 29.1327L153.701 23.9968L154.635 21.8325L160.751 7.92759L166.379 21.351L166.44 21.4969L166.58 21.8276L167.469 23.9481L169.437 28.6609C170.125 30.2707 170.462 31.4477 170.462 32.187C170.462 32.7512 170.226 33.2132 169.733 33.6071C169.246 34.0011 168.318 34.2345 166.922 34.2978V35.2267H180.74V34.2978C179.329 34.2199 178.219 33.8357 177.431 33.1451Z" fill="#000000"/>
+              </svg>
+              <p className="text-stone-400 text-[11px] leading-relaxed uppercase tracking-widest">
+                Elevando o padrão da joalheria brasileira com design contemporâneo e alma clássica.
+              </p>
+              <div className="flex space-x-6">
+                <Instagram className="w-4 h-4 text-black hover:text-primary cursor-pointer transition-colors" />
+                <Facebook className="w-4 h-4 text-black hover:text-primary cursor-pointer transition-colors" />
+                <Twitter className="w-4 h-4 text-black hover:text-primary cursor-pointer transition-colors" />
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] mb-8 text-black">Explorar</h4>
+              <ul className="space-y-4 text-[10px] text-stone-500 uppercase tracking-widest font-bold">
+                <li className="hover:text-primary cursor-pointer transition-colors">Novidades</li>
+                <li className="hover:text-primary cursor-pointer transition-colors">Mais Vendidos</li>
+                <li className="hover:text-primary cursor-pointer transition-colors">Guia de Tamanhos</li>
+                <li className="hover:text-primary cursor-pointer transition-colors">Cuidados</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] mb-8 text-black">Atendimento</h4>
+              <ul className="space-y-4 text-[10px] text-stone-500 uppercase tracking-widest font-bold">
+                <li className="hover:text-primary cursor-pointer transition-colors">Fale Conosco</li>
+                <li className="hover:text-primary cursor-pointer transition-colors">Envios</li>
+                <li className="hover:text-primary cursor-pointer transition-colors">Privacidade</li>
+                <li className="hover:text-primary cursor-pointer transition-colors">FAQ</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] mb-8 text-black">Newsletter</h4>
+              <p className="text-stone-500 text-[10px] mb-6 uppercase tracking-widest leading-relaxed">Receba convites para eventos exclusivos e lançamentos.</p>
+              <div className="flex">
+                <input 
+                  type="email" 
+                  placeholder="SEU E-MAIL" 
+                  className="bg-stone-50 border border-stone-100 rounded-none px-4 py-3 text-[10px] w-full focus:ring-1 focus:ring-primary focus:border-transparent outline-none uppercase tracking-widest"
+                />
+                <button className="bg-brand-black text-white px-6 py-3 rounded-none hover:bg-primary transition-colors">
+                  <Mail className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-stone-100 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400">
+            <p>© 2024 Lumina Joias. Todos os direitos reservados.</p>
+            <div className="flex gap-10">
+              <span>Termos de Uso</span>
+              <span>Privacidade</span>
+              <span>Cookies</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <Cart 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+        items={cartItems}
+        onUpdateQuantity={updateQuantity}
+        onRemove={removeFromCart}
+      />
+      
+      <AISpecialist />
+    </div>
+  );
+}
